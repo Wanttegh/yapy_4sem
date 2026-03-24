@@ -1,7 +1,3 @@
-"""
-Модуль, реализующий классы геометрических фигур: Rectangle, Circle, Rhombus.
-"""
-
 import math
 from typing import Union
 
@@ -154,30 +150,11 @@ class Rhombus:
         return f"Rhombus(p={self.p}, q={self.q})"
 
 
-# Эти функции уже даны в задании, их нельзя менять
 def calculate_perimeter(figure) -> float:
-    """
-    Вычисляет периметр переданной фигуры.
-
-    Args:
-        figure: Объект геометрической фигуры.
-
-    Returns:
-        Периметр фигуры.
-    """
     return figure.get_perimeter()
 
 
 def calculate_square(figure) -> float:
-    """
-    Вычисляет площадь переданной фигуры.
-
-    Args:
-        figure: Объект геометрической фигуры.
-
-    Returns:
-        Площадь фигуры.
-    """
     return figure.get_square()
 
 

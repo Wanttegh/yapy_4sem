@@ -11,16 +11,6 @@ class MyCounter(Counter):
 
     """
 
-    def __init__(self, iterable: Optional[Iterable] = None, **kwargs) -> None:
-        """
-        Инициализирует объект MyCounter.
-
-        Args:
-            iterable: Итерируемый объект для подсчёта элементов.
-            **kwargs: Именованные аргументы для передачи в Counter.
-        """
-        super().__init__(iterable, **kwargs)
-
     def least_common(self, n: Optional[int] = None) -> List[Tuple[Any, int]]:
         """
         Возвращает n самых редких элементов.
@@ -49,20 +39,6 @@ class MyCounter(Counter):
 
         # Иначе возвращаем первые n элементов
         return sorted_items[:n]
-
-    # Переопределяем методы для сохранения единообразия документации
-    def most_common(self, n: Optional[int] = None) -> List[Tuple[Any, int]]:
-        """
-        Возвращает n самых частых элементов.
-
-        Args:
-            n: Количество возвращаемых элементов.
-               Если None, возвращаются все элементы.
-
-        Returns:
-            Список кортежей (элемент, частота) в порядке убывания частоты.
-        """
-        return super().most_common(n)
 
     def __repr__(self) -> str:
         """Возвращает строковое представление объекта."""
