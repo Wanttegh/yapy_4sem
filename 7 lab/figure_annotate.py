@@ -1,15 +1,32 @@
 import math
-from typing import Union
+from typing import Protocol
+
+
+class Shape(Protocol):
+    """
+    Протокол (интерфейс) для геометрических фигур.
+
+    Любой класс, реализующий методы get_perimeter и get_square,
+    автоматически считается соответствующим этому протоколу.
+    """
+
+    def get_perimeter(self) -> float:
+        """Метод для вычисления периметра."""
+        ...
+
+    def get_square(self) -> float:
+        """Метод для вычисления площади."""
+        ...
 
 
 class Rectangle:
-    """Класс, представляющий прямоугольник."""
+    """Класс прямоугольника со сторонами a и b."""
 
     def __init__(self, a: float, b: float) -> None:
         """
-        Инициализирует прямоугольник со сторонами a и b.
+        Инициализирует прямоугольник.
 
-        a: Сторона A.
+        a: Сторона А.
         b: Сторона B.
         """
         self.a = a
@@ -25,18 +42,18 @@ class Rectangle:
 
 
 class Circle:
-    """Класс, представляющий круг."""
+    """Класс круга с радиусом r."""
 
     def __init__(self, r: float) -> None:
         """
-        Инициализирует круг радиусом r.
+        Инициализирует круг.
 
         r: Радиус круга.
         """
         self.r = r
 
     def get_perimeter(self) -> float:
-        """Возвращает длину окружности (периметр)."""
+        """Возвращает длину окружности."""
         return 2 * math.pi * self.r
 
     def get_square(self) -> float:
@@ -45,11 +62,11 @@ class Circle:
 
 
 class Rhombus:
-    """Класс, представляющий ромб."""
+    """Класс ромба с диагоналями p и q."""
 
     def __init__(self, p: float, q: float) -> None:
         """
-        Инициализирует ромб его диагоналями p и q.
+        Инициализирует ромб.
 
         p: Первая диагональ.
         q: Вторая диагональ.
@@ -61,52 +78,55 @@ class Rhombus:
         """
         Возвращает периметр ромба.
 
-        Сторона ромба вычисляется через диагонали по теореме Пифагора.
+        Сторона вычисляется через диагонали по теореме Пифагора:
+        side = sqrt((p/2)^2 + (q/2)^2).
         """
         side = math.sqrt((self.p / 2) ** 2 + (self.q / 2) ** 2)
         return 4 * side
 
     def get_square(self) -> float:
-        """Возвращает площадь ромба через его диагонали."""
+        """Возвращает площадь ромба."""
         return (self.p * self.q) / 2
 
 
-# Создаем тип-псевдоним для аннотации функций
-Figure = Union[Rectangle, Circle, Rhombus]
-
-
-def calculate_perimeter(figure: Figure) -> float:
+def calculate_perimeter(figure: Shape) -> float:
     """
-    Вычисляет и возвращает периметр переданной фигуры.
+    Вычисляет периметр любой фигуры, соответствующей протоколу Shape.
 
-    figure: Экземпляр фигуры (Rectangle, Circle или Rhombus).
+    figure: Объект фигуры.
     :return: Значение периметра.
     """
     return figure.get_perimeter()
 
 
-def calculate_square(figure: Figure) -> float:
+def calculate_square(figure: Shape) -> float:
     """
-    Вычисляет и возвращает площадь переданной фигуры.
+    Вычисляет площадь любой фигуры, соответствующей протоколу Shape.
 
-    figure: Экземпляр фигуры (Rectangle, Circle или Rhombus).
+    figure: Объект фигуры.
     :return: Значение площади.
     """
     return figure.get_square()
 
 
 def main() -> None:
-    """Основная функция для демонстрации работы классов фигур."""
+    """Основная функция для демонстрации работы программы."""
+    # Создаем экземпляры фигур
     rect = Rectangle(10, 20)
     circ = Circle(5)
     rhomb = Rhombus(6, 8)
 
-    figures: list[Figure] = [rect, circ, rhomb]
+    # Список объектов, каждый из которых неявно реализует протокол Shape
+    figures: list[Shape] = [rect, circ, rhomb]
 
     for fig in figures:
-        print(f"Фигура: {fig.__class__.__name__}")
-        print(f"  Периметр: {calculate_perimeter(fig):.2f}")
-        print(f"  Площадь:  {calculate_square(fig):.2f}")
+        name = fig.__class__.__name__
+        perimeter = calculate_perimeter(fig)
+        square = calculate_square(fig)
+
+        print(f"Фигура: {name}")
+        print(f"  Периметр: {perimeter:.4f}")
+        print(f"  Площадь:  {square:.4f}")
         print("-" * 20)
 
 
