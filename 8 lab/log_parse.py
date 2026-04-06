@@ -76,6 +76,10 @@ def _print_results(top_uas: List[Tuple[str, int]],
         print(f"{i}. {ip} | Пик: {traffic_mib:.2f} MiB")
 
 
-if __name__ == "__main__":
+def main():
     # Путь к файлу лога
     analyze_logs('C:\\Users\\howard\\Desktop\\yapy_4sem\\8 lab\\access_log.txt')
+
+
+if __name__ == "__main__":
+    main()
