@@ -1,0 +1,10 @@
+{
+    "admin": {
+        "salt": "4d569d5c0a1869899ab6876a6130c778",
+        "hash": "107be7cc8ef0037e099a520e24f42a83c62faf3e897d38cafd5e33b2cde4930f"
+    },
+    "user_ivan": {
+        "salt": "52cee8b63479a567a7c36b177bdb5b29",
+        "hash": "c7195d908b513bf27887f58ba2fe83cf3589ef4d91e8db6958c5ae35d5b18590"
+    }
+}
