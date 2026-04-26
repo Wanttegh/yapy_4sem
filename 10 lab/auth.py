@@ -103,8 +103,8 @@ def main():
     auth.change_password("admin", "qwerty12345", "new_secure_password")
 
     # 4. Проверка после смены
-    print(f"Вход admin со старым: {auth.authenticate('admin', 'qwerty12345')}")  # False
-    print(f"Вход admin с новым: {auth.authenticate('admin', 'new_secure_password')}")  # True
+    print(f"Вход admin со старым паролем: {auth.authenticate('admin', 'qwerty12345')}")  # False
+    print(f"Вход admin с новым паролем: {auth.authenticate('admin', 'new_secure_password')}")  # True
 
 
 # --- Пример использования ---

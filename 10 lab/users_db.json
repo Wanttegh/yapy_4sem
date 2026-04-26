@@ -1,10 +1,10 @@
 {
     "admin": {
-        "salt": "4d569d5c0a1869899ab6876a6130c778",
-        "hash": "107be7cc8ef0037e099a520e24f42a83c62faf3e897d38cafd5e33b2cde4930f"
+        "salt": "d9f5ef879d96e02dea1bca5313e60e48",
+        "hash": "cf91b0142eae95e704e3b3f260d20dbbd2da8dfe523fdeff9f9ee243159eef3d"
     },
     "user_ivan": {
-        "salt": "52cee8b63479a567a7c36b177bdb5b29",
-        "hash": "c7195d908b513bf27887f58ba2fe83cf3589ef4d91e8db6958c5ae35d5b18590"
+        "salt": "fec13cea5891979848aeb0fbaad2bc6a",
+        "hash": "af0a7ab61b4455e215b0d45ea4aab00b54309fedd0d325e095818846d28fd75a"
     }
 }
