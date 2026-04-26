@@ -1,11 +1,10 @@
 import time
 import uuid
-import fakeredis  # Имитация Redis
+import redis
 from concurrent.futures import ThreadPoolExecutor
 
-
 class RedisLock:
-    def __init__(self, redis_client, lock_name, expire=10, retry_delay=0.01):
+    def __init__(self, redis_client, lock_name, expire=10, retry_delay=0.1):
         self.redis = redis_client
         self.lock_name = f"lock:{lock_name}"
         self.expire = expire
@@ -13,19 +12,18 @@ class RedisLock:
         self.token = None
 
     def __enter__(self):
+        # Генерируем уникальный токен для текущего захвата
         self.token = str(uuid.uuid4())
         while True:
-            # Пытаемся захватить лок
-            # nx=True: установить только если ключа нет
-            # ex=expire: время жизни ключа (защита от вечного лока)
+            # Атомарная операция: установить если нет (NX) с временем жизни (EX)
             if self.redis.set(self.lock_name, self.token, nx=True, ex=self.expire):
                 return self
-            # Если занято — ждем немного и пробуем снова
+            # Если не удалось захватить — ждем и пробуем снова
             time.sleep(self.retry_delay)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # Безопасное удаление через Lua-скрипт.
-        # Удаляем только если значение в Redis совпадает с нашим токеном.
+        # Удаляем ключ только если токен совпадает (чтобы не удалить чужой лок)
+        # Используем Lua-скрипт для атомарности "проверь и удали"
         script = """
         if redis.call("get", KEYS[1]) == ARGV[1] then
             return redis.call("del", KEYS[1])
@@ -35,37 +33,35 @@ class RedisLock:
         """
         self.redis.eval(script, 1, self.lock_name, self.token)
 
+# Инициализация клиента
+# decode_responses=True преобразует байты из Redis в строки Python автоматически
+r_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
-# Создаем клиент FakeRedis (он живет в памяти программы)
-r_client = fakeredis.FakeRedis(decode_responses=True)
-mu = RedisLock(r_client, "global_counter_lock")
+# Инициализируем наш мьютекс
+mu = RedisLock(r_client, "my_counter_lock")
 result = 0
-
 
 def function():
     global result
-    # Контекстный менеджер вызывает __enter__ (захват) и __exit__ (освобождение)
-    with mu:
+    with mu:  # Точка синхронизации
+        # Читаем -> Ждем -> Пишем
         r = result
-        # Имитируем долгую операцию (например, запрос к БД или вычисления)
-        # Без мьютекса здесь бы возник Race Condition
-        time.sleep(0.1)
+        time.sleep(0.1)  # Имитация долгой работы
         result = r + 1
-
 
 def main():
     global result
-    print("Запуск 10 потоков...")
-
+    result = 0
+    print("Запуск потоков...")
     with ThreadPoolExecutor(max_workers=5) as executor:
-        # Запускаем функцию 10 раз в разных потоках
         futures = [executor.submit(function) for _ in range(10)]
-        # Ждем завершения всех
         for f in futures:
-            f.result()
-
-    print(f"Итоговый результат: {result}")
-
+            f.result() # Ожидаем завершения всех потоков
+            
+    print(f"Итоговый результат: {result}") # Ожидаем 10
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except redis.exceptions.ConnectionError:
+        print("Ошибка: Не удалось подключиться к Redis. Убедитесь, что сервер запущен.")
