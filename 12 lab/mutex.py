@@ -58,9 +58,9 @@ mu = RedisLock(r_client, "my_counter_lock")
 result = 0
 
 def function():
-    global result
     with mu:  # Точка синхронизации
         # Читаем -> Ждем -> Пишем
+        global result
         r = result
         time.sleep(0.1)  # Имитация долгой работы
         result = r + 1
