@@ -22,16 +22,32 @@ class RedisLock:
             time.sleep(self.retry_delay)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # Удаляем ключ только если токен совпадает (чтобы не удалить чужой лок)
-        # Используем Lua-скрипт для атомарности "проверь и удали"
-        script = """
-        if redis.call("get", KEYS[1]) == ARGV[1] then
-            return redis.call("del", KEYS[1])
-        else
-            return 0
-        end
-        """
-        self.redis.eval(script, 1, self.lock_name, self.token)
+        # Создаем пайплайн (транзакцию)
+        pipe = self.redis.pipeline()
+        try:
+            # Включаем режим наблюдения за ключом.
+            # Если другой клиент изменит этот ключ до вызова execute(), 
+            # транзакция будет отменена.
+            pipe.watch(self.lock_name)
+            
+            # Получаем текущее значение ключа
+            current_token = pipe.get(self.lock_name)
+            
+            # Проверяем, что замок всё еще принадлежит нам
+            if current_token == self.token:
+                # Начинаем запись команд для атомарного выполнения
+                pipe.multi()
+                pipe.delete(self.lock_name)
+                # Выполняем накопленные команды
+                pipe.execute()
+            else:
+                # Если замок уже не наш, просто перестаем следить за ним
+                pipe.unwatch()
+        except Exception:
+            # Если во время выполнения транзакции что-то пошло не так
+            # (например, WatchError, если ключ изменился), просто игнорируем.
+            # Это значит, что лок уже либо удален, либо перехвачен.
+            pass
 
 # Инициализация клиента
 # decode_responses=True преобразует байты из Redis в строки Python автоматически
