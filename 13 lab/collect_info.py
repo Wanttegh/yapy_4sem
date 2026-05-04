@@ -8,14 +8,16 @@ class Composer:
     def __init__(self):
         """Инициализация аккумулятора результата."""
         self.result = 0
+        self._lock = asyncio.Lock()
 
-    def add(self, data: dict):
+    async def add(self, data: dict):
         """
         Добавляет значение из словаря к общему результату.
 
         :param data: Словарь, содержащий ключ 'data'.
         """
-        self.result += data.get('data', 0)
+        async with self._lock:
+            self.result += data.get('data', 0)
 
 
 async def fetch(
@@ -39,7 +41,7 @@ async def fetch(
             async with session.get(f'{url}/{param}') as response:
                 if response.status == 200:
                     data = await response.json()
-                    composer.add(data)
+                    await composer.add(data)
                 else:
                     # Можно добавить логирование ошибок сервера
                     pass
@@ -73,10 +75,14 @@ async def collector(params: range) -> int:
     return composer.result
 
 
-if __name__ == '__main__':
+def main():
     # Входные параметры
     request_params = range(100_000)
 
     # Запуск асинхронного цикла
     final_result = asyncio.run(collector(request_params))
     print(f"Итоговый результат: {final_result}")
+
+
+if __name__ == '__main__':
+    main()
