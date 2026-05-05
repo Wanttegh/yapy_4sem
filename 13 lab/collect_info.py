@@ -14,7 +14,7 @@ class Composer:
         """
         Добавляет значение из словаря к общему результату.
 
-        :param data: Словарь, содержащий ключ 'data'.
+        data: Словарь, содержащий ключ 'data'.
         """
         async with self._lock:
             self.result += data.get('data', 0)
@@ -30,11 +30,11 @@ async def fetch(
     """
     Выполняет асинхронный GET-запрос и передает данные в Composer.
 
-    :param session: Сессия aiohttp для выполнения запросов.
-    :param url: Базовый URL сервиса.
-    :param param: Параметр запроса.
-    :param composer: Экземпляр класса Composer для сбора данных.
-    :param semaphore: Семафор для ограничения количества одновременных запросов.
+    session: Сессия aiohttp для выполнения запросов.
+    url: Базовый URL сервиса.
+    param: Параметр запроса.
+    composer: Экземпляр класса Composer для сбора данных.
+    semaphore: Семафор для ограничения количества одновременных запросов.
     """
     async with semaphore:
         try:
@@ -54,7 +54,7 @@ async def collector(params: range) -> int:
     """
     Основная асинхронная функция для сбора данных по списку параметров.
 
-    :param params: Список или диапазон параметров для запросов.
+    params: Список или диапазон параметров для запросов.
     :return: Итоговая сумма собранных данных.
     """
     url = 'http://localhost:8003'

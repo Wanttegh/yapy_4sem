@@ -6,7 +6,7 @@ async def send_messages(writer):
     """
     Считывает ввод пользователя и отправляет на сервер.
 
-    :param writer: Объект потока записи.
+    writer: Объект потока записи.
     """
     while True:
         message = await asyncio.to_thread(sys.stdin.readline)
@@ -20,7 +20,7 @@ async def receive_messages(reader):
     """
     Принимает сообщения от сервера и выводит в консоль.
 
-    :param reader: Объект потока чтения.
+    reader: Объект потока чтения.
     """
     while True:
         data = await reader.read(1024)

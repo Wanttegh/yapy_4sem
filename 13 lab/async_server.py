@@ -6,7 +6,7 @@ async def send_messages(writer):
     """
     Считывает ввод из консоли и отправляет его клиенту.
 
-    :param writer: Объект потока записи asyncio.
+    writer: Объект потока записи asyncio.
     """
     while True:
         # Используем to_thread, чтобы input() не блокировал event loop
@@ -21,7 +21,7 @@ async def receive_messages(reader):
     """
     Принимает сообщения от клиента и выводит их в консоль.
 
-    :param reader: Объект потока чтения asyncio.
+    reader: Объект потока чтения asyncio.
     """
     while True:
         data = await reader.read(1024)
@@ -36,8 +36,8 @@ async def handle_client(reader, writer):
     """
     Управляет соединением с клиентом.
 
-    :param reader: Объект потока чтения.
-    :param writer: Объект потока записи.
+    reader: Объект потока чтения.
+    writer: Объект потока записи.
     """
     addr = writer.get_extra_info('peername')
     print(f"Новое соединение от {addr}")
