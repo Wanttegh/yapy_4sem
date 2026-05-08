@@ -8,8 +8,8 @@ async def handle_define(request: web.Request) -> web.Response:
     """
     Обрабатывает запрос на определение алгоритмов хеширования.
 
-    :param request: Объект запроса aiohttp.
-    :return: JSON со списком возможных алгоритмов.
+    request: Объект запроса aiohttp.
+    return: JSON со списком возможных алгоритмов.
     """
     hash_value = request.match_info.get('hash', '')
     algorithms = identify_hashes(hash_value)
@@ -20,8 +20,8 @@ async def handle_solve(request: web.Request) -> web.Response:
     """
     Обрабатывает запрос на 'раскрытие' хеша по конкретному алгоритму.
 
-    :param request: Объект запроса aiohttp.
-    :return: JSON с результатом вычисления.
+    request: Объект запроса aiohttp.
+    return: JSON с результатом вычисления.
     """
     hash_value = request.query.get('hash', '')
     algorithm = request.query.get('algorithm', '')

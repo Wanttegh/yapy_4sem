@@ -9,9 +9,9 @@ async def fetch_algorithms(session: aiohttp.ClientSession,
     """
     Получает список алгоритмов для хеша с сервера.
 
-    :param session: Сессия aiohttp.
-    :param hash_value: Строка хеша.
-    :return: Список строк (алгоритмов).
+    session: Сессия aiohttp.
+    hash_value: Строка хеша.
+    return: Список строк (алгоритмов).
     """
     url = f'http://127.0.0.1:8080/define/{hash_value}'
     async with session.get(url) as response:
@@ -23,10 +23,10 @@ async def solve_hash(session: aiohttp.ClientSession,
     """
     Отправляет запрос на решение хеша по конкретному алгоритму.
 
-    :param session: Сессия aiohttp.
-    :param hash_value: Строка хеша.
-    :param algorithm: Название алгоритма.
-    :return: Словарь с результатом.
+    session: Сессия aiohttp.
+    hash_value: Строка хеша.
+    algorithm: Название алгоритма.
+    return: Словарь с результатом.
     """
     url = 'http://127.0.0.1:8080/solve'
     params = {'hash': hash_value, 'algorithm': algorithm}
