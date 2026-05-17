@@ -1,5 +1,3 @@
-"""Модуль сервера для идентификации и расшифровки хешей."""
-
 from aiohttp import web
 from hident import identify_hashes, long_solve_hash
 
