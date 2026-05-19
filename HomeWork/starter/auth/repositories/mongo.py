@@ -1,32 +1,47 @@
 from __future__ import annotations
+import pymongo
+from motor.motor_asyncio import AsyncIOMotorClient
 from auth.config import Settings
-from auth.models import AuditEvent
-from auth.protocols import AuditRepositoryProtocol, AsyncAuditRepositoryProtocol
 
-
-class MongoAuditRepository(AuditRepositoryProtocol):
+class MongoAuditRepository:
     def __init__(self, settings: Settings) -> None:
-        self.settings = settings
+        # Исправлено: используем mongo_dsn (проверьте имя в вашем Settings)
+        self.client = pymongo.MongoClient(settings.mongo_dsn)
+        self.db = self.client.get_database("audit_db")
+        self.collection = self.db.get_collection("events")
 
     def log_event(self, account_id: int, event_type: str, payload: dict) -> None:
-        super().log_event(account_id, event_type, payload)
+        self.collection.insert_one({
+            "account_id": account_id,
+            "event_type": event_type,
+            "payload": payload
+        })
 
-    def list_events(self, account_id: int, limit: int = 5) -> list[AuditEvent]:
-        return super().list_events(account_id, limit)
+    def list_events(self, account_id: int, limit: int = 5):
+        cursor = self.collection.find({"account_id": account_id}).sort("_id", -1).limit(limit)
+        return [{"event_type": e["event_type"], "payload": e["payload"]} for e in cursor]
 
     def clear(self) -> None:
-        super().clear()
+        self.collection.delete_many({})
 
 
-class AsyncMongoAuditRepository(AsyncAuditRepositoryProtocol):
+class AsyncMongoAuditRepository:
     def __init__(self, settings: Settings) -> None:
-        self.settings = settings
+        self.client = AsyncIOMotorClient(settings.mongo_dsn)
+        self.db = self.client.get_database("audit_db")
+        self.collection = self.db.get_collection("events")
 
     async def log_event(self, account_id: int, event_type: str, payload: dict) -> None:
-        await super().log_event(account_id, event_type, payload)
+        await self.collection.insert_one({
+            "account_id": account_id,
+            "event_type": event_type,
+            "payload": payload
+        })
 
-    async def list_events(self, account_id: int, limit: int = 5) -> list[AuditEvent]:
-        return await super().list_events(account_id, limit)
+    async def list_events(self, account_id: int, limit: int = 5):
+        cursor = self.collection.find({"account_id": account_id}).sort("_id", -1).limit(limit)
+        events = await cursor.to_list(length=limit)
+        return [{"event_type": e["event_type"], "payload": e["payload"]} for e in events]
 
     async def clear(self) -> None:
-        await super().clear()
+        await self.collection.delete_many({})
