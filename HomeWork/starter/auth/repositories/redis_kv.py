@@ -1,31 +1,31 @@
 from __future__ import annotations
-
 from auth.config import Settings
+from auth.protocols import CodeRepositoryProtocol, AsyncCodeRepositoryProtocol
 
 
-class RedisCodeRepository:
+class RedisCodeRepository(CodeRepositoryProtocol):
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
 
     def set_code(self, account_id: int, code: str, ttl_seconds: int) -> None:
-        raise NotImplementedError("TODO: sync Redis set_code")
+        super().set_code(account_id, code, ttl_seconds)
 
     def has_code(self, account_id: int) -> bool:
-        raise NotImplementedError("TODO: sync Redis has_code")
+        return super().has_code(account_id)
 
     def clear(self) -> None:
-        raise NotImplementedError("TODO: sync Redis clear")
+        super().clear()
 
 
-class AsyncRedisCodeRepository:
+class AsyncRedisCodeRepository(AsyncCodeRepositoryProtocol):
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
 
     async def set_code(self, account_id: int, code: str, ttl_seconds: int) -> None:
-        raise NotImplementedError("TODO: async Redis set_code")
+        await super().set_code(account_id, code, ttl_seconds)
 
     async def has_code(self, account_id: int) -> bool:
-        raise NotImplementedError("TODO: async Redis has_code")
+        return await super().has_code(account_id)
 
     async def clear(self) -> None:
-        raise NotImplementedError("TODO: async Redis clear")
+        await super().clear()

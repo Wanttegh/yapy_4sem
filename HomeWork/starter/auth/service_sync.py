@@ -5,18 +5,18 @@ import string
 
 from auth.models import Account, AccountCard
 from auth.protocols import (
-    PostgresAccountsRepository,
-    MongoAuditRepository,
-    RedisCodeRepository,
+    AccountsRepositoryProtocol,
+    AuditRepositoryProtocol,
+    CodeRepositoryProtocol,
 )
 
 
 class AccountCardService:
     def __init__(
         self,
-        accounts: PostgresAccountsRepository,
-        audit: MongoAuditRepository,
-        codes: RedisCodeRepository,
+        accounts: AccountsRepositoryProtocol,
+        audit: AuditRepositoryProtocol,
+        codes: CodeRepositoryProtocol,
     ) -> None:
         self.accounts = accounts
         self.audit = audit

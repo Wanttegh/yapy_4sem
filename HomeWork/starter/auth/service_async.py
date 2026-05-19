@@ -6,18 +6,18 @@ import string
 
 from auth.models import Account, AccountCard
 from auth.protocols import (
-    AsyncPostgresAccountsRepository,
-    AsyncMongoAuditRepository,
-    AsyncRedisCodeRepository,
+    AsyncAccountsRepositoryProtocol,
+    AsyncAuditRepositoryProtocol,
+    AsyncCodeRepositoryProtocol,
 )
 
 
 class AsyncAccountCardService:
     def __init__(
         self,
-        accounts: AsyncPostgresAccountsRepository,
-        audit: AsyncMongoAuditRepository,
-        codes: AsyncRedisCodeRepository,
+        accounts: AsyncAccountsRepositoryProtocol,
+        audit: AsyncAuditRepositoryProtocol,
+        codes: AsyncCodeRepositoryProtocol,
     ) -> None:
         self.accounts = accounts
         self.audit = audit

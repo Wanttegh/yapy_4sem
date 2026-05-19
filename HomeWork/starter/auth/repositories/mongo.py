@@ -1,31 +1,32 @@
 from __future__ import annotations
-
 from auth.config import Settings
+from auth.models import AuditEvent
+from auth.protocols import AuditRepositoryProtocol, AsyncAuditRepositoryProtocol
 
 
-class MongoAuditRepository:
+class MongoAuditRepository(AuditRepositoryProtocol):
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
 
     def log_event(self, account_id: int, event_type: str, payload: dict) -> None:
-        raise NotImplementedError("TODO: sync Mongo log_event")
+        super().log_event(account_id, event_type, payload)
 
-    def list_events(self, account_id: int, limit: int = 5):
-        raise NotImplementedError("TODO: sync Mongo list_events")
+    def list_events(self, account_id: int, limit: int = 5) -> list[AuditEvent]:
+        return super().list_events(account_id, limit)
 
     def clear(self) -> None:
-        raise NotImplementedError("TODO: sync Mongo clear")
+        super().clear()
 
 
-class AsyncMongoAuditRepository:
+class AsyncMongoAuditRepository(AsyncAuditRepositoryProtocol):
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
 
     async def log_event(self, account_id: int, event_type: str, payload: dict) -> None:
-        raise NotImplementedError("TODO: async Mongo log_event")
+        await super().log_event(account_id, event_type, payload)
 
-    async def list_events(self, account_id: int, limit: int = 5):
-        raise NotImplementedError("TODO: async Mongo list_events")
+    async def list_events(self, account_id: int, limit: int = 5) -> list[AuditEvent]:
+        return await super().list_events(account_id, limit)
 
     async def clear(self) -> None:
-        raise NotImplementedError("TODO: async Mongo clear")
+        await super().clear()
