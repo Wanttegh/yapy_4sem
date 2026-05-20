@@ -1,11 +1,14 @@
 from __future__ import annotations
-import secrets
-import asyncio
+
+from random import randint
+
+from auth.models import AccountCard
 from auth.protocols import (
     AsyncAccountsRepositoryProtocol,
     AsyncAuditRepositoryProtocol,
     AsyncCodeRepositoryProtocol,
 )
+
 
 class AsyncAccountCardService:
     def __init__(
@@ -19,37 +22,65 @@ class AsyncAccountCardService:
         self.codes = codes
 
     async def create_account(self, email: str):
+        # создать аккаунт в postgres
         account = await self.accounts.create_account(email)
-        # Обращаемся к id напрямую через точку
-        await self.audit.log_event(account.id, "account_created", {"email": email})
+
+        # записать событие в mongodb
+        await self.audit.log_event(
+            account.id,
+            "account_created",
+            {"email": email},
+        )
+
+        # вернуть account
         return account
 
-    async def set_verification_code(self, account_id: int, ttl_seconds: int = 300):
-        code = secrets.token_hex(4).upper()
-        await self.codes.set_code(account_id, code, ttl_seconds)
-        await self.audit.log_event(account_id, "verification_code_set", {"ttl": ttl_seconds})
-        return code
+    async def set_verification_code(
+        self,
+        account_id: int,
+        ttl_seconds: int = 300,
+    ):
+        # сгенерировать код
+        code = str(randint(1000, 9999))
+
+        # положить код в redis
+        await self.codes.set_code(
+            account_id,
+            code,
+            ttl_seconds,
+        )
+
+        # записать событие в mongodb
+        await self.audit.log_event(
+            account_id,
+            "verification_code_set",
+            {"code": code},
+        )
 
     async def get_account_card(self, account_id: int):
-        # asyncio.gather возвращает кортеж с результатами
-        account, has_code, events = await asyncio.gather(
-            self.accounts.get_account(account_id),
-            self.codes.has_code(account_id),
-            self.audit.list_events(account_id)
-        )
-        
-        if not account:
-            return None
+        # получить account из postgres
+        account = await self.accounts.get_account(account_id)
 
-        return {
-            "account": account,
-            "has_active_code": has_code,
-            "last_events": events
-        }
+        if account:
+            account_id = account.id
+
+            # проверить наличие кода в redis
+            has_code = await self.codes.has_code(account_id)
+
+            # получить события из mongodb
+            events = await self.audit.list_events(account_id)
+
+            card = AccountCard(
+                account,
+                has_code,
+                events,
+            )
+        else:
+            card = None
+
+        return card
 
     async def reset(self) -> None:
-        await asyncio.gather(
-            self.accounts.clear(),
-            self.audit.clear(),
-            self.codes.clear()
-        )
+        await self.accounts.clear()
+        await self.audit.clear()
+        await self.codes.clear()

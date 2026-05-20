@@ -1,36 +1,50 @@
 from __future__ import annotations
-from typing import cast
-import redis
-import redis.asyncio as async_redis
+
 from auth.config import Settings
+import redis
+from redis.asyncio import Redis
 
 class RedisCodeRepository:
     def __init__(self, settings: Settings) -> None:
-        # Исправлено: используем redis_dsn
-        self.client = redis.from_url(settings.redis_dsn)
+        self.settings = settings
+        self.client = redis.Redis.from_url(settings.redis_dsn)
 
     def set_code(self, account_id: int, code: str, ttl_seconds: int) -> None:
-        self.client.setex(f"code:{account_id}", ttl_seconds, code)
+        key = str(account_id)
+        self.client.setex(key, ttl_seconds, code)
 
     def has_code(self, account_id: int) -> bool:
-        # Исправлено: явное приведение к bool для типизации
-        return bool(self.client.exists(f"code:{account_id}"))
+        key = str(account_id)
+        return self.client.exists(key) == 1
 
     def clear(self) -> None:
         self.client.flushdb()
 
+    def __del__(self):
+        self.client.close()
+
 
 class AsyncRedisCodeRepository:
     def __init__(self, settings: Settings) -> None:
-        self.client = async_redis.from_url(settings.redis_dsn)
+        self.settings = settings
+        self.client = Redis.from_url(settings.redis_dsn)
 
     async def set_code(self, account_id: int, code: str, ttl_seconds: int) -> None:
-        await self.client.setex(f"code:{account_id}", ttl_seconds, code)
+        key = str(account_id)
+
+        await self.client.setex(
+            key,
+            ttl_seconds,
+            code,
+        )
 
     async def has_code(self, account_id: int) -> bool:
-        # Исправлено: await результата перед сравнением
-        res = await self.client.exists(f"code:{account_id}")
-        return int(res) > 0
+        key = str(account_id)
+
+        return await self.client.exists(key) == 1
 
     async def clear(self) -> None:
         await self.client.flushdb()
+
+    async def close(self) -> None:
+        await self.client.aclose()

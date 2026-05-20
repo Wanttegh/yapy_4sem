@@ -1,47 +1,92 @@
 from __future__ import annotations
-import pymongo
-from motor.motor_asyncio import AsyncIOMotorClient
+
 from auth.config import Settings
+from auth.models import AuditEvent
+from pymongo import MongoClient
+from motor.motor_asyncio import AsyncIOMotorClient
+from datetime import datetime
 
 class MongoAuditRepository:
     def __init__(self, settings: Settings) -> None:
-        # Исправлено: используем mongo_dsn (проверьте имя в вашем Settings)
-        self.client = pymongo.MongoClient(settings.mongo_dsn)
-        self.db = self.client.get_database("audit_db")
-        self.collection = self.db.get_collection("events")
+        self.settings = settings
+        self.client = MongoClient(settings.mongo_dsn)
+        self.db = self.client[settings.mongo_db_name]
+        self.collection = self.db["audit_events"]
 
     def log_event(self, account_id: int, event_type: str, payload: dict) -> None:
-        self.collection.insert_one({
+        event = {
             "account_id": account_id,
             "event_type": event_type,
-            "payload": payload
-        })
+            "payload": payload,
+            "created_at": datetime.now().isoformat()
+        }
+        self.collection.insert_one(event)
 
-    def list_events(self, account_id: int, limit: int = 5):
-        cursor = self.collection.find({"account_id": account_id}).sort("_id", -1).limit(limit)
-        return [{"event_type": e["event_type"], "payload": e["payload"]} for e in cursor]
+    def list_events(self, account_id: int, limit: int = 5) -> list[AuditEvent]:
+        events = self.collection.find(
+            {"account_id": account_id},
+            {"_id": 0}
+        ).sort("created_at", -1).limit(limit)
+        return [
+            AuditEvent(
+                account_id=event["account_id"],
+                event_type=event["event_type"],
+                payload=event["payload"],
+                created_at=datetime.fromisoformat(event["created_at"])
+            )
+            for event in events
+        ]
 
     def clear(self) -> None:
         self.collection.delete_many({})
 
+    def __del__(self):
+        self.client.close()
 
 class AsyncMongoAuditRepository:
     def __init__(self, settings: Settings) -> None:
+        self.settings = settings
+
         self.client = AsyncIOMotorClient(settings.mongo_dsn)
-        self.db = self.client.get_database("audit_db")
-        self.collection = self.db.get_collection("events")
+        self.db = self.client[settings.mongo_db_name]
+        self.collection = self.db["audit_events"]
 
     async def log_event(self, account_id: int, event_type: str, payload: dict) -> None:
-        await self.collection.insert_one({
+        event = {
             "account_id": account_id,
             "event_type": event_type,
-            "payload": payload
-        })
+            "payload": payload,
+            "created_at": datetime.now().isoformat(),
+        }
 
-    async def list_events(self, account_id: int, limit: int = 5):
-        cursor = self.collection.find({"account_id": account_id}).sort("_id", -1).limit(limit)
+        await self.collection.insert_one(event)
+
+    async def list_events(self, account_id: int, limit: int = 5) -> list[AuditEvent]:
+        cursor = (
+            self.collection.find(
+                {"account_id": account_id},
+                {"_id": 0},
+            )
+            .sort("created_at", -1)
+            .limit(limit)
+        )
+
         events = await cursor.to_list(length=limit)
-        return [{"event_type": e["event_type"], "payload": e["payload"]} for e in events]
+
+        return [
+            AuditEvent(
+                account_id=event["account_id"],
+                event_type=event["event_type"],
+                payload=event["payload"],
+                created_at=datetime.fromisoformat(
+                    event["created_at"]
+                ),
+            )
+            for event in events
+        ]
 
     async def clear(self) -> None:
         await self.collection.delete_many({})
+
+    def __del__(self):
+        self.client.close()
